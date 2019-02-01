@@ -4,9 +4,10 @@
 #include <memory.h>
 #include "util.h"
 
-static const char *SLASH = "\\";
+static const char *SLASH = "/";
 static const char *JAVA_EXTENSION = ".java";
 
+void process_dir(char *dir_name);
 void process_file(FILE *file);
 
 int main(int len, char **argv) {
@@ -16,38 +17,15 @@ int main(int len, char **argv) {
     }
 
     char *dir_name = *(argv + 1);
-    int ends_with_slash = ends_with(dir_name, SLASH);
-    if (!ends_with_slash) {
-        dir_name = concat(dir_name, SLASH);
-    }
 
-    DIR *dir = opendir(dir_name);
-    if (dir == NULL) {
-        puts("Provided directory is not valid");
-        return 1;
-    }
-
-    struct dirent *ent;
-    while ((ent = readdir(dir)) != NULL) {
-        int is_java_file = ends_with(ent->d_name, JAVA_EXTENSION);
-        if (is_java_file) {
-            char *file_path = concat(dir_name, ent->d_name);
-            FILE *file = fopen(file_path, "r");
-            printf("Processing file: %s...\n", file_path);
-            process_file(file);
-
-            fclose(file);
-        }
-    }
-
-    closedir(dir);
-    free(dir_name);
+    process_dir(dir_name);
 
     return 0;
 }
 
-int fill_line(int *line_len, char *line, FILE *file) {
-    int chars_read = 0;
+int fill_line(int *line_len, char **line_ptr, FILE *file) {
+    char *line = *line_ptr;
+    int char_idx = 0;
     char c;
 
     while (TRUE) {
@@ -57,35 +35,83 @@ int fill_line(int *line_len, char *line, FILE *file) {
             return -1;
         }
 
-        chars_read++;
-        if (chars_read >= *line_len - 1) {
-            *line_len = chars_read + 1;
-            line = realloc(line, (size_t) *line_len * sizeof(*line));
-            printf("Size: %d\n", *line);
+        if (char_idx >= *line_len - 2) {
+            *line_len = char_idx + 2;
+            char *alloc = realloc(line, *line_len);
+            if (alloc == NULL) {
+                puts("Error while allocating new char memory");
+                return -1;
+            } else {
+                line = alloc;
+                *line_ptr = line;
+            }
         }
 
-        *(line + chars_read - 1) = c;
+        *(line + char_idx) = c;
+        char_idx++;
 
         if (c == '\n') {
             break;
         }
     }
 
-    *(line + chars_read) = '\0';
-    return chars_read;
+    *(line + char_idx) = '\0';
+    return char_idx;
+}
+
+void process_dir(char *dir_name) {
+    int ends_with_slash = ends_with(dir_name, SLASH);
+    if (!ends_with_slash) {
+        dir_name = concat(dir_name, SLASH);
+    }
+
+    DIR *dir = opendir(dir_name);
+    if (dir == NULL) {
+        printf("Provided directory \"%s\" could not be located...\n", dir_name);
+        return;
+    }
+
+    printf("Parsing directory \"%s\"...\n", dir_name);
+
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+        if (ent->d_type == DT_REG && ends_with(ent->d_name, JAVA_EXTENSION)) {
+            char *file_path = concat(dir_name, ent->d_name);
+            FILE *file = fopen(file_path, "r");
+            printf("Processing file: \"%s\"...\n", file_path);
+            process_file(file);
+
+            fclose(file);
+        }
+
+        if (ent->d_type == DT_DIR) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+                continue;
+            }
+
+            char *subdir_name = concat(dir_name, ent->d_name);
+            process_dir(subdir_name);
+        }
+    }
+
+    closedir(dir);
+    free(dir_name);
 }
 
 void process_file(FILE *file) {
-    int line_len = 1;
-    char *line = malloc((size_t) line_len * sizeof(char));
+    int line_number = 0;
+    int line_len = 0;
+    char *line = malloc(line_len);
 
-    puts("Dumping...");
     while (TRUE) {
-        int chars_read = fill_line(&line_len, line, file);
+        line_number++;
+        int chars_read = fill_line(&line_len, &line, file);
         if (chars_read == -1) {
             break;
         }
 
-        printf("%s", line);
+        if (begins_with(line, "if")) {
+            printf("%d %s", line_number, line);
+        }
     }
 }

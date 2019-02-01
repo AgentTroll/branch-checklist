@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.12)
-project(pjcart C)
+cmake_minimum_required(VERSION 3.7)
+project(branch-checklist C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(pjcart main.c util.h util.c)
+add_executable(branch-checklist main.c util.h util.c)
