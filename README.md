@@ -14,7 +14,7 @@ number followed by the line itself into the console.
 # Building
 
 ``` shell
-git clone https://github.com/AgentTroll/branch-checklist.git
+git clone https://github.com/caojohnny/branch-checklist.git
 cd branch-checklist
 mkdir build
 cd build
@@ -28,13 +28,13 @@ Alternatively, you can also head over to the releases page and download the exec
 # Demo
 
 ```
-agenttroll@agenttroll:~/CLionProjects/branch-checklist/build$ ./branch-checklist /home/agenttroll/CLionProjects/branch-checklist/test
-Parsing directory "/home/agenttroll/CLionProjects/branch-checklist/test/"...
-Processing file: "/home/agenttroll/CLionProjects/branch-checklist/test/Branches.java"...
+$ ./branch-checklist /home/caojohnny/CLionProjects/branch-checklist/test
+Parsing directory "/home/caojohnny/CLionProjects/branch-checklist/test/"...
+Processing file: "/home/caojohnny/CLionProjects/branch-checklist/test/Branches.java"...
 3         if (args.length == 4) {
 7         if (args.length == 6) {
-Parsing directory "/home/agenttroll/CLionProjects/branch-checklist/test/test2/"...
-Processing file: "/home/agenttroll/CLionProjects/branch-checklist/test/test2/Branches2.java"...
+Parsing directory "/home/caojohnny/CLionProjects/branch-checklist/test/test2/"...
+Processing file: "/home/caojohnny/CLionProjects/branch-checklist/test/test2/Branches2.java"...
 3         if (args.length == 4) {
 7         if (args.length == 6) {
 ```
